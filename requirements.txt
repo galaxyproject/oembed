@@ -1,1 +1,4 @@
 gunicorn
+flask
+requests
+beautifulsoup4

@@ -1,1 +1,1 @@
-web: gunicorn ptdk:app
+web: gunicorn server:app
