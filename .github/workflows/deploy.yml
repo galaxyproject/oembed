@@ -30,4 +30,4 @@ jobs:
       - name: Deploy 🚀
         run: |
             git remote add dokku dokku@apps.galaxyproject.eu:oembed
-            git push oembed main
+            git push dokku main
