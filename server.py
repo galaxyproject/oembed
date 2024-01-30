@@ -12,7 +12,6 @@ with open("index.html") as f:
     INDEX_CONTENTS = f.read()
 
 
-
 # Server a / route
 @app.route("/")
 def index():
@@ -60,7 +59,9 @@ def oembed():
             pass
 
         # Add some tracking, why not
-        a["href"] = a["href"] + "?utm_source=galaxy-help&utm_medium=oembed&utm_campaign=oembed"
+        a["href"] = (
+            a["href"] + "?utm_source=galaxy-help&utm_medium=oembed&utm_campaign=oembed"
+        )
         # Open in a new tab?
         a["target"] = "_blank"
 
@@ -74,11 +75,10 @@ def oembed():
             pass
 
         # Set style max-width: 100%
-        if 'style' in img:
-            img['style'] = img['style'] + "; max-width: 100%;"
+        if "style" in img:
+            img["style"] = img["style"] + "; max-width: 100%;"
         else:
-            img['style'] = "max-width: 100%;"
-
+            img["style"] = "max-width: 100%;"
 
     data = {
         "author_name": "Galaxy Training Network",
