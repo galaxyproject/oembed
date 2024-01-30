@@ -5,8 +5,14 @@ from bs4 import BeautifulSoup
 import flask
 import os
 import git
+from prometheus_flask_exporter import PrometheusMetrics
+
 
 app = flask.Flask(__name__)
+metrics = PrometheusMetrics(app)
+
+metrics.info('app_info', 'Galaxy OEmbed Server', version='1.0.0')
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 GTN_URL = "https://training.galaxyproject.org/"
 GIT_REV = git.commit(BASE_DIR)
@@ -28,20 +34,24 @@ def home():
 
 
 @app.route("/oembed")
+@metrics.counter('oembed', 'Number of oembed loads',
+         labels={'url': lambda: flask.request.args.get('url')})
+@metrics.histogram('requests_by_status_and_path', 'Request latencies by status and path',
+           labels={'status': lambda r: r.status_code, 'path': lambda: flask.request.args.get('url')})
 def oembed():
     # Get url + format from url params:
     url = flask.request.args.get("url")
     fmt = flask.request.args.get("format", "json")
 
     if not re.match(r"^https://training.galaxyproject.org/training-material/", url):
-        return flask.jsonify({"error": "Invalid url parameter provided."})
+        return flask.jsonify({"error": "Invalid url parameter provided."}), 400
 
     if url is None:
-        return flask.jsonify({"error": "No url parameter provided."})
+        return flask.jsonify({"error": "No url parameter provided."}), 400
 
     gtn_data = requests.get(url)
     if gtn_data.status_code != 200:
-        return flask.jsonify({"error": "Could not fetch GTN page."})
+        return flask.jsonify({"error": "Could not fetch GTN page."}), 500
 
     soup = BeautifulSoup(gtn_data.text, "html.parser")
     # itemprop="acceptedAnswer"
