@@ -2,10 +2,30 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
-		<title>Document</title>
-		<link rel="alternate" type="application/json+oembed" href="https://oembed.apps.galaxyproject.eu/oembed?format=json&url=https://training.galaxyproject.org/training-material/faqs/galaxy/histories_copy_dataset.html" title="Test oEmbed Profile" />
+		<title>Galaxy OEmbed Server</title>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
 	</head>
 	<body>
-		oEmbed test page
+		<main>
+			<h1>Galaxy OEmbed Server</h1>
+			<blockquote>oEmbed is a format for allowing an embedded representation of a URL on third party sites. The simple API allows a website to display embedded content (such as photos or videos) when a user posts a link to that resource, without having to parse the resource directly.</blockquote>
+
+			<p>
+			This server processes selected pages for embedding within Discourse (and other sites) via exposing an [OEmbed](https://oembed.com/) endpoint.
+
+			<p>
+			When you post a supported URL in e.g. Discourse, then the contents of that URL can be rendered in a nicer format that's more useful for end users.
+
+			<h2>Supported URLs</h2>
+
+			<ul>
+				<li><code>https://training.galaxyproject.org/training-material/faqs/**/*.html</code></li>
+				<li>Your URL here!</li>
+			</ul>
+
+			<h2>License</h2>
+
+			<a href="https://spdx.org/licenses/AGPL-3.0-or-later.html">AGPL-3.0-or-later</a>
+		</main>
 	</body>
 </html>

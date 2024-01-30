@@ -7,18 +7,21 @@ import os
 
 app = flask.Flask(__name__)
 GTN_URL = "https://training.galaxyproject.org/"
+INDEX_CONTENTS = ""
+with open("index.html") as f:
+    INDEX_CONTENTS = f.read()
+
 
 
 # Server a / route
 @app.route("/")
 def index():
-    return "OK"
+    return INDEX_CONTENTS
 
 
 @app.route("/index.html")
 def home():
-    with open("index.html") as f:
-        return f.read()
+    return INDEX_CONTENTS
 
 
 @app.route("/oembed")
