@@ -9,7 +9,7 @@ import git
 app = flask.Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 GTN_URL = "https://training.galaxyproject.org/"
-GIT_REV = git.get_commit_id(BASE_DIR)
+GIT_REV = git.commit(BASE_DIR)
 
 INDEX_CONTENTS = ""
 with open("index.html") as f:

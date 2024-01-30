@@ -1,6 +1,11 @@
 """Interactions with Git repo."""
-
 import os
+
+def commit(basedir):
+    try:
+        return get_commit_id(basedir)
+    except FileNotFoundError:
+        return os.environ.get('GIT_REV', 'main')
 
 
 def get_commit_id(base_dir):
@@ -26,12 +31,3 @@ def get_commit_id(base_dir):
     # Get the commit hash ([:7] used to get "--short")
     with open(git_head_ref, "r") as f:
         return f.read().strip()
-
-
-def get_remote_url(base_dir):
-    """Return URL of remote repository."""
-    git_conf = os.path.join(base_dir, ".git", "config")
-    with open(git_conf, "r") as f:
-        for line in f:
-            if line.strip(" \t").split("=")[0].strip() == "url":
-                return line.strip(" \t").split("=")[1].strip().replace(".git", "")
