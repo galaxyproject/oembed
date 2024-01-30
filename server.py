@@ -4,12 +4,16 @@ import requests
 from bs4 import BeautifulSoup
 import flask
 import os
+import git
 
 app = flask.Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 GTN_URL = "https://training.galaxyproject.org/"
+GIT_REV = git.get_commit_id(BASE_DIR)
+
 INDEX_CONTENTS = ""
 with open("index.html") as f:
-    INDEX_CONTENTS = f.read()
+    INDEX_CONTENTS = f.read().replace('GIT_REV', GIT_REV)
 
 
 # Server a / route
