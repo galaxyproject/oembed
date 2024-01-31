@@ -45,6 +45,7 @@ def home():
     labels={
         "status": lambda r: r.status_code,
         "path": lambda: flask.request.args.get("url"),
+        "user_agent": lambda: flask.request.headers.get("User-Agent"),
     },
 )
 def oembed():
