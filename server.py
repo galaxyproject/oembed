@@ -51,6 +51,9 @@ def oembed():
     # Get url + format from url params:
     url = flask.request.args.get("url")
     fmt = flask.request.args.get("format", "json")
+    # Get request headers
+    headers = flask.request.headers
+    print(headers)
 
     if not re.match(r"^https://training.galaxyproject.org/training-material/", url):
         return flask.jsonify({"error": "Invalid url parameter provided."}), 400
