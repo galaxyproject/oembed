@@ -51,9 +51,16 @@ def oembed():
     # Get url + format from url params:
     url = flask.request.args.get("url")
     fmt = flask.request.args.get("format", "json")
-    # Get request headers
-    headers = flask.request.headers
-    print(headers)
+    # Get user agent
+    user_agent = flask.request.headers.get("User-Agent")
+
+    if not user_agent:
+        return flask.jsonify({"error": "Unsupported User Agent, returning an error message to ensure you get a more sensible link preview."}), 400
+
+    # Currently we're targetting two platforms: slack and discourse.
+    # Mastodon is showing it as a video which is hilarious and not helpful.
+    if not ('Discourse Forum Onebox' in user_agent or 'Slackbot-LinkExpanding' in user_agent):
+        return flask.jsonify({"error": "Unsupported User Agent."}), 400
 
     if not re.match(r"^https://training.galaxyproject.org/training-material/", url):
         return flask.jsonify({"error": "Invalid url parameter provided."}), 400
