@@ -33,44 +33,7 @@ def home():
     return INDEX_CONTENTS
 
 
-@app.route("/oembed")
-@metrics.counter(
-    "oembed",
-    "Number of oembed loads",
-    labels={
-        "url": lambda: flask.request.args.get("url"),
-        "user_agent": lambda: flask.request.headers.get("User-Agent"),
-    },
-)
-@metrics.histogram(
-    "requests_by_status_and_path",
-    "Request latencies by status and path",
-    labels={
-        "status": lambda r: r.status_code,
-        "path": lambda: flask.request.args.get("url"),
-    },
-)
-def oembed():
-    # Get url + format from url params:
-    url = flask.request.args.get("url")
-    fmt = flask.request.args.get("format", "json")
-    # Get user agent
-    user_agent = flask.request.headers.get("User-Agent")
-
-    if not user_agent:
-        return flask.jsonify({"error": "Unsupported User Agent, returning an error message to ensure you get a more sensible link preview."}), 400
-
-    # Currently we're targetting two platforms: slack and discourse.
-    # Mastodon is showing it as a video which is hilarious and not helpful.
-    if not ('Discourse Forum Onebox' in user_agent or 'Slackbot-LinkExpanding' in user_agent):
-        return flask.jsonify({"error": "Unsupported User Agent."}), 400
-
-    if not re.match(r"^https://training.galaxyproject.org/training-material/", url):
-        return flask.jsonify({"error": "Invalid url parameter provided."}), 400
-
-    if url is None:
-        return flask.jsonify({"error": "No url parameter provided."}), 400
-
+def generate_embed(url, iframe=False):
     gtn_data = requests.get(url)
     if gtn_data.status_code != 200:
         return flask.jsonify({"error": "Could not fetch GTN page."}), 500
@@ -129,7 +92,20 @@ def oembed():
         "author_name": creators,
         "author_url": "https://galaxy.training",
         "description": og_desc,
-        "html": f"""
+        "width": 560,
+        "height": 1,
+        "provider_name": "Galaxy Training Network (GTN)",
+        "provider_url": "https://galaxy.training",
+        "title": answer_title,
+        "type": "video",
+        "version": "1.0",
+    }
+
+    if iframe:
+        data["html"] = f'<iframe width="560" height="400" scrolling="yes" sandbox="allow-same-origin allow-scripts" title="{answer_title}" src="{url}?utm_source=galaxy-help&utm_medium=oembed&utm_campaign=oembed" frameborder="0" allowfullscreen></iframe>'
+        data['height'] = 400
+    else:
+        data["html"] =  f"""
             <section style="border: 1px solid #2c3143; box-shadow: 5px 6px #b2b2b2;margin:1rem 0;">
             <div style="border-bottom: 3px solid #2c3143; padding:0.8rem;display: flex; justify-content: space-between; align-items: center;">
                 <span>
@@ -144,16 +120,55 @@ def oembed():
             {answer}
             </div>
             <iframe width="1" height="1" sandbox="allow-same-origin allow-scripts" title="min" src="https://training.galaxyproject.org/" frameborder="0" allowfullscreen></iframe></section>
-        """,
-        "width": 560,
-        "height": 1,
-        "provider_name": "Galaxy Training Network (GTN)",
-        "provider_url": "https://galaxy.training",
-        "title": answer_title,
-        "type": "video",
-        "version": "1.0",
-    }
-    return flask.jsonify(data)
+        """
+
+    return data
+
+
+@app.route("/oembed")
+@metrics.counter(
+    "oembed",
+    "Number of oembed loads",
+    labels={
+        "url": lambda: flask.request.args.get("url"),
+        "user_agent": lambda: flask.request.headers.get("User-Agent"),
+    },
+)
+@metrics.histogram(
+    "requests_by_status_and_path",
+    "Request latencies by status and path",
+    labels={
+        "status": lambda r: r.status_code,
+        "path": lambda: flask.request.args.get("url"),
+    },
+)
+def oembed():
+    # Get url + format from url params:
+    url = flask.request.args.get("url")
+    fmt = flask.request.args.get("format", "json")
+    # Get user agent
+    user_agent = flask.request.headers.get("User-Agent")
+
+    if not user_agent:
+        return flask.jsonify({"error": "Unsupported User Agent, returning an error message to ensure you get a more sensible link preview."}), 400
+
+    if not re.match(r"^https://training.galaxyproject.org/training-material/", url):
+        return flask.jsonify({"error": "Invalid url parameter provided, only the GTN is supported."}), 400
+
+    if url is None:
+        return flask.jsonify({"error": "No url parameter provided."}), 400
+
+    # Currently we're targetting two platforms: slack and discourse.
+    # Mastodon is showing it as a video which is hilarious and not helpful.
+    if ('Discourse Forum Onebox' in user_agent or 'Slackbot-LinkExpanding' in user_agent):
+        data = generate_embed(url)
+        return flask.jsonify(data)
+    elif 'Mastodon' in user_agent:
+        data = generate_embed(url, iframe=True)
+        return flask.jsonify(data)
+
+    return flask.jsonify({"error": "Unsupported User Agent."}), 400
+
 
 
 if __name__ == "__main__":
