@@ -11,7 +11,7 @@ from prometheus_flask_exporter import PrometheusMetrics
 app = flask.Flask(__name__)
 metrics = PrometheusMetrics(app)
 
-metrics.info('app_info', 'Galaxy OEmbed Server', version='1.0.0')
+metrics.info("app_info", "Galaxy OEmbed Server", version="1.0.0")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 GTN_URL = "https://training.galaxyproject.org/"
@@ -19,7 +19,7 @@ GIT_REV = git.commit(BASE_DIR)
 
 INDEX_CONTENTS = ""
 with open("index.html") as f:
-    INDEX_CONTENTS = f.read().replace('GIT_REV', GIT_REV)
+    INDEX_CONTENTS = f.read().replace("GIT_REV", GIT_REV)
 
 
 # Server a / route
@@ -34,10 +34,19 @@ def home():
 
 
 @app.route("/oembed")
-@metrics.counter('oembed', 'Number of oembed loads',
-         labels={'url': lambda: flask.request.args.get('url')})
-@metrics.histogram('requests_by_status_and_path', 'Request latencies by status and path',
-           labels={'status': lambda r: r.status_code, 'path': lambda: flask.request.args.get('url')})
+@metrics.counter(
+    "oembed",
+    "Number of oembed loads",
+    labels={"url": lambda: flask.request.args.get("url")},
+)
+@metrics.histogram(
+    "requests_by_status_and_path",
+    "Request latencies by status and path",
+    labels={
+        "status": lambda r: r.status_code,
+        "path": lambda: flask.request.args.get("url"),
+    },
+)
 def oembed():
     # Get url + format from url params:
     url = flask.request.args.get("url")
@@ -60,6 +69,15 @@ def oembed():
     answer = answer.find("div", {"class": "col-md-8"})
     # get the page <title>
     answer_title = soup.find("title").text
+    og_desc = soup.find("meta", {"property": "og:description"})["content"]
+
+    # Find ALL of the DC.creator entries
+    creators = ", ".join(
+        [
+            creator.attrs["content"]
+            for creator in soup.find_all("meta", {"name": "DC.creator"})
+        ]
+    )
 
     # Need to rewrite every A
     for a in answer.find_all("a"):
@@ -95,9 +113,9 @@ def oembed():
             img["style"] = "max-width: 100%;"
 
     data = {
-        "author_name": "Galaxy Training Network",
+        "author_name": creators,
         "author_url": "https://galaxy.training",
-        "description": "GTN FAQ Entry",
+        "description": og_desc,
         "html": f"""
             <section style="border: 1px solid #2c3143; box-shadow: 5px 6px #b2b2b2;margin:1rem 0;">
             <div style="border-bottom: 3px solid #2c3143; padding:0.8rem;display: flex; justify-content: space-between; align-items: center;">
@@ -116,9 +134,9 @@ def oembed():
         """,
         "width": 560,
         "height": 1,
-        "provider_name": "GTN",
+        "provider_name": "Galaxy Training Network (GTN)",
         "provider_url": "https://galaxy.training",
-        "title": "Test Title",
+        "title": answer_title,
         "type": "video",
         "version": "1.0",
     }
