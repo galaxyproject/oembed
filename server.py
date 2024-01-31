@@ -37,7 +37,10 @@ def home():
 @metrics.counter(
     "oembed",
     "Number of oembed loads",
-    labels={"url": lambda: flask.request.args.get("url")},
+    labels={
+        "url": lambda: flask.request.args.get("url"),
+        "user_agent": lambda: flask.request.headers.get("User-Agent"),
+    },
 )
 @metrics.histogram(
     "requests_by_status_and_path",
@@ -45,7 +48,6 @@ def home():
     labels={
         "status": lambda r: r.status_code,
         "path": lambda: flask.request.args.get("url"),
-        "user_agent": lambda: flask.request.headers.get("User-Agent"),
     },
 )
 def oembed():
