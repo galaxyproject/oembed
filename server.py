@@ -104,6 +104,9 @@ def generate_embed(url, iframe=False):
     if iframe:
         data["html"] = f'<iframe width="560" height="400" scrolling="yes" sandbox="allow-same-origin allow-scripts" title="{answer_title}" src="{url}?utm_source=galaxy-help&utm_medium=oembed&utm_campaign=oembed" frameborder="0" allowfullscreen></iframe>'
         data['height'] = 400
+        data['thumbnail_url'] = "https://training.galaxyproject.org/training-material/assets/images/GTNLogo1000.png"
+        data['thumbnail_width'] = 560
+        data['thumbnail_height'] = 400
     else:
         data["html"] =  f"""
             <section style="border: 1px solid #2c3143; box-shadow: 5px 6px #b2b2b2;margin:1rem 0;">
