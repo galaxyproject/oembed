@@ -36,3 +36,4 @@ You must configure discourse to support this:
 ## LICENSE
 
 AGPL-3.0-or-later
+
