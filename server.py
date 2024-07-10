@@ -33,7 +33,7 @@ def home():
     return INDEX_CONTENTS
 
 
-def generate_embed(url, response_type=False):
+def generate_embed(url, response_type=False, css=False):
     gtn_data = requests.get(url)
     if gtn_data.status_code != 200:
         return flask.jsonify({"error": "Could not fetch GTN page."}), 500
@@ -126,7 +126,11 @@ def generate_embed(url, response_type=False):
         """
 
     if response_type == "iframe-embed":
-        return "<html><body>" + data['html'] + "</body></html>"
+        if css:
+            return "<html><link rel=\"stylesheet\" href=\"https://training.galaxyproject.org/training-material/assets/css/main.css\"><body>" + data['html'] + "</body></html>"
+        else:
+            return "<html><body>" + data['html'] + "</body></html>"
+
     return data
 
 
@@ -151,6 +155,7 @@ def oembed():
     # Get url + format from url params:
     url = flask.request.args.get("url")
     fmt = flask.request.args.get("format", "json")
+
     # Get user agent
     user_agent = flask.request.headers.get("User-Agent")
 
@@ -163,9 +168,12 @@ def oembed():
     if url is None:
         return flask.jsonify({"error": "No url parameter provided."}), 400
 
+    # NON STANDARD
+    css = flask.request.args.get("style", "")
+
     # NON STANDARD RESPONSE.
     if fmt == "iframe-embed":
-        return generate_embed(url, response_type="iframe-embed")
+        return generate_embed(url, response_type="iframe-embed", css=css.lower() == "gtn")
 
     # Currently we're targetting two platforms: slack and discourse.
     # Mastodon is showing it as a video which is hilarious and not helpful.
