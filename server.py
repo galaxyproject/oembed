@@ -39,10 +39,14 @@ def generate_embed(url, response_type=False, css=False):
         return flask.jsonify({"error": "Could not fetch GTN page."}), 500
 
     soup = BeautifulSoup(gtn_data.text, "html.parser")
-    # itemprop="acceptedAnswer"
-    answer = soup.find("div", {"itemprop": "acceptedAnswer"})
-    # Find the col-md-8 child
-    answer = answer.find("div", {"class": "col-md-8"})
+    if '/faqs/' in url:
+        # itemprop="acceptedAnswer"
+        answer = soup.find("div", {"itemprop": "acceptedAnswer"})
+        # Find the col-md-8 child
+        answer = answer.find("div", {"class": "col-md-8"})
+    else:
+        answer = soup.find("div", {"class": "main-content"})
+
     # get the page <title>
     answer_title = soup.find("title").text
     og_desc = soup.find("meta", {"property": "og:description"})["content"]
@@ -62,6 +66,7 @@ def generate_embed(url, response_type=False, css=False):
         elif a["href"].startswith("#"):
             a["href"] = url + a["href"]
         elif a["href"].startswith(".."):
+            a["href"] = '/'.join(url.split('/')[0:-1]) + '/' + a["href"]
             print(f"Found a relative path, {url} - {a['href']}")
         elif a["href"].startswith("http"):
             pass
@@ -78,6 +83,7 @@ def generate_embed(url, response_type=False, css=False):
         if img["src"].startswith("/"):
             img["src"] = GTN_URL + img["src"]
         elif img["src"].startswith(".."):
+            img["src"] = '/'.join(url.split('/')[0:-1]) + '/' + img["src"]
             print(f"Found a relative path, {url} - {img['src']}")
         elif img["src"].startswith("http"):
             pass
@@ -109,6 +115,9 @@ def generate_embed(url, response_type=False, css=False):
         data['thumbnail_height'] = 400
     else:
         data["html"] =  f"""
+            <style>
+            a[target="_blank"]::after { '{' }content: "" !important; { '}' }
+            </style>
             <section style="border: 1px solid #2c3143; box-shadow: 5px 6px #b2b2b2;margin:1rem 0;">
             <div style="border-bottom: 3px solid #2c3143; padding:0.8rem;display: flex; justify-content: space-between; align-items: center;">
                 <span>
@@ -116,7 +125,9 @@ def generate_embed(url, response_type=False, css=False):
                     <a href="{url}?utm_source=galaxy-help&utm_medium=oembed&utm_campaign=oembed">{answer_title}</a>
                 </span>
                 <span>
-                    <img src="https://training.galaxyproject.org/training-material/assets/images/GTN-60px.png" style="height: 30px; width: 30px;" alt="Galaxy Training Network logo"> <a href="https://training.galaxyproject.org/training-material/?utm_source=galaxy-help&utm_medium=oembed&utm_campaign=oembed">Galaxy Training!</a>
+                    <a href="https://training.galaxyproject.org/training-material/?utm_source=galaxy-help&utm_medium=oembed&utm_campaign=oembed">
+                        <img src="https://training.galaxyproject.org/training-material/assets/images/GTN-60px.png" style="height: 30px; width: 30px;" alt="GTN logo">
+                    </a>
                 </span>
             </div>
             <div style="padding: 0.8rem;">
